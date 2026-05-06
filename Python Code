@@ -1,0 +1,58 @@
+import pandas as pd
+import numpy as np
+
+# Import the documents.
+last_review = pd.read_csv('data/airbnb_last_review.tsv', delimiter='\t')
+price = pd.read_csv('data/airbnb_price.csv')
+room_typexl = pd.ExcelFile('data/airbnb_room_type.xlsx')
+room_type = room_typexl.parse(0)
+
+# Print the first five rows of each dataframes.
+print(last_review.head())
+print(price.head())
+print(room_type.head())
+
+# Merge the tables based using the column name 'listing_id'.
+df1 = pd.merge(last_review, price, on = 'listing_id')
+df = pd.merge(df1, room_type, on = 'listing_id')
+
+print(df.info())
+
+# Convert the last_review column to type datetime.
+# Sort the dataframe based on the date column in ascending order and reset the index.
+df['last_review'] = pd.to_datetime(df['last_review'])
+df = df.sort_values(['last_review'], ascending=True).reset_index(drop=True)
+earliest_review_date = df['last_review'].iloc[0]
+latest_date = df['last_review'].iloc[-1]
+print(earliest_review_date, latest_date)
+
+# Check for the unique values in the room_type column.
+print(df['room_type'].unique())
+
+# Convert the values in the room_type column to title case and check the unique values again.
+df['room_type']=df['room_type'].str.title()
+print(df['room_type'].unique())
+
+# Count the number of room types that are Private Rooms.
+private_rooms_count = df[df['room_type']=='Private Room'].shape[0]
+print(private_rooms_count)
+
+# Check the values of the price column.
+print(df['price'])
+
+# Remove the ' dollars' from the values and convert it to an integer.
+df['price'] = df['price'].str.strip(' dollars')
+df['price'] = df['price'].astype('int')
+
+# Calculate the mean and round it to the nearest two decimal places.
+Average_price = df['price'].mean().round(2)
+print(Average_price)
+
+# Create a new dataframe and insert the variables into it.
+review_dates = pd.DataFrame()
+review_dates = pd.DataFrame({'first_reviewed': [earliest_review_date],
+                             'last_reviewed': [latest_date],
+                             'nb_private_rooms': [private_rooms_count],
+                             'avg_price': [Average_price]
+                            })
+print(review_dates)
